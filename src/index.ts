@@ -6,9 +6,16 @@ import SeqLogger, { ISeqLogger, ISeqEvent, ISeqLevels } from './seq-logging';
 
 
 /** Interfaces */
-type IErrorExchange = { error: Error, id: number }[];
-
+export type IWinstonLogMeta = any;
 export type IWinstonLogCallback = (err?: any, res?: any) => void;
+
+type IFormattedMetaErrorId = number;
+type IFormattedMetaError = { error: Error, id: IFormattedMetaErrorId };
+type IFormattedProperty = any;
+interface IFormattedMeta {
+  properties: IFormattedProperty | null;
+  errors:     IFormattedMetaError[];
+}
 
 export interface ISeqOption {
   serverUrl?:       string;
@@ -58,7 +65,7 @@ export class Seq extends Transport implements ISeqTransportInstance {
     this.connect();
   }
 
-  log(level: string, msg: string, meta: any, callback: IWinstonLogCallback): void {
+  log(level: string, msg: string, meta: IWinstonLogMeta, callback: IWinstonLogCallback): void {
     const seqLog: ISeqEvent = {
       level:           this.levelMapper(level),
       messageTemplate: msg
@@ -126,7 +133,7 @@ export class Seq extends Transport implements ISeqTransportInstance {
     return false;
   }
 
-  private _isPrimitive(obj: any) {
+  private _isPrimitive(obj: any): boolean {
     if (obj === null || obj === undefined) {
       return true;
     }
@@ -154,12 +161,9 @@ export class Seq extends Transport implements ISeqTransportInstance {
     }
   }
 
-  private _formatMeta(meta: any): {
-    properties: Object | null
-    errors:     IErrorExchange
-  } {
+  private _formatMeta(meta: IWinstonLogMeta): IFormattedMeta {
     /** Flat error list */
-    const errors: IErrorExchange = [];
+    const errors: IFormattedMetaError[] = [];
 
     return {
       properties: this._formatProperty(meta, errors),
@@ -167,7 +171,7 @@ export class Seq extends Transport implements ISeqTransportInstance {
     };
   }
 
-  private _getErrorStach(err: Error, id: number): string {
+  private _getErrorStach(err: Error, id: IFormattedMetaErrorId): string {
     const stack = err.stack !== undefined
            ? err.stack
            : err.toString();
@@ -175,7 +179,7 @@ export class Seq extends Transport implements ISeqTransportInstance {
     return `@${id}: ${stack}`;
   }
 
-  private _formatProperty(prop: any, errors: IErrorExchange) {
+  private _formatProperty(prop: any, errors: IFormattedMetaError[]): IFormattedProperty {
     if (this._isError(prop)) {
       const id = errors.length;
 
@@ -212,7 +216,7 @@ export class Seq extends Transport implements ISeqTransportInstance {
       return null;
     }
 
-    const properties: any = {};
+    const properties: { [key: string]: IFormattedProperty } = {};
 
     for (let key in prop) {
       const value = prop[key];
@@ -223,14 +227,14 @@ export class Seq extends Transport implements ISeqTransportInstance {
     return properties;
   }
 
-  private _formatError(err: Error, id: number) {
+  private _formatError(err: Error, id: IFormattedMetaErrorId) {
     const result = Object.getOwnPropertyNames(err)
       .filter((key) => key !== 'stack')
-      .reduce((res, key) => {
-        res[key] = (err as any)[key];
+      .reduce<{ [key: string]: any }>((res, key: keyof Error) => {
+        res[key] = err[key];
 
         return res;
-      }, {} as any);
+      }, {});
 
     result.stack = `@${id}`;
 
@@ -245,8 +249,8 @@ export class Seq extends Transport implements ISeqTransportInstance {
     return fn.toString();
   }
 
-  private _formatArray(arr: any[], errors: IErrorExchange): any[] {
-    return arr.slice(0).map((val) => this._formatProperty(val, errors));
+  private _formatArray(arr: any[], errors: IFormattedMetaError[]): IFormattedProperty[] {
+    return arr.map((val) => this._formatProperty(val, errors));
   }
 
   private _formatBuffer(buffer: Buffer) {
