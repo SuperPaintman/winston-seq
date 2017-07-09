@@ -7,7 +7,7 @@
     "build": "tsc",
     "build:watch": "tsc -w",
     "lint": "tslint src/**/*.ts",
-    "lint:commits-ci": "./scripts/lint-commits",
+    "lint:commits-ci": "bash ./scripts/lint-commits",
     "test": "mocha --opts ./mocha.opts ./lib/**/test.js",
     "test:watch": "mocha --opts ./mocha.opts --watch ./lib/**/test.js",
     "test-ci": "istanbul cover ./node_modules/mocha/bin/_mocha -- --opts ./mocha.opts ./lib/**/test.js",
