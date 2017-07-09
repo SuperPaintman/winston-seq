@@ -38,7 +38,10 @@
     "!scripts/"
   ],
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "seq-logging": "0.1.6",
+    "winston": "2.3.1"
+  },
   "devDependencies": {
     "@types/chai": "4.0.1",
     "@types/mocha": "2.2.41",
