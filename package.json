@@ -1,0 +1,57 @@
+{
+  "name": "winston-seq",
+  "version": "0.0.1",
+  "description": "A Seq transport for Winston",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "lint": " tslint src/**/*.ts",
+    "test": "mocha --opts ./mocha.opts ./lib/**/test.js",
+    "test:watch": "mocha --opts ./mocha.opts --watch ./lib/**/test.js",
+    "test-ci": "istanbul cover ./node_modules/mocha/bin/_mocha -- --opts ./mocha.opts ./lib/**/test.js",
+    "prepublish": "npm run lint && npm run build && npm run test",
+    "prepush": "npm run prepublish",
+    "precommit": "npm run lint"
+  },
+  "keywords": [
+    "winston",
+    "logging",
+    "sysadmin",
+    "tools",
+    "winston-transport",
+    "winston-seq",
+    "seq"
+  ],
+  "author": {
+    "name": "SuperPaintman",
+    "email": "SuperPaintmanDeveloper@gmail.com",
+    "url": "https://superpaintman.com/"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "lib/",
+    "!src/"
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/chai": "4.0.1",
+    "@types/mocha": "2.2.41",
+    "@types/node": "8.0.9",
+    "@types/winston": "2.3.3",
+    "chai": "4.0.2",
+    "husky": "0.14.3",
+    "istanbul": "0.4.5",
+    "mocha": "3.4.2",
+    "source-map-support": "0.4.15",
+    "tslint": "5.5.0",
+    "tslint-eslint-rules": "4.1.1",
+    "typescript": "2.4.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SuperPaintman/winston-seq.git"
+  }
+}
