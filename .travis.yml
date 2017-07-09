@@ -20,6 +20,7 @@ before_install:
 
 script:
   # Lint
+  - "npm run lint:commits-ci"
   - "npm run lint"
   # Build
   - "npm run build"
