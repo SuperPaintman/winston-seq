@@ -7,10 +7,17 @@
     "lang": [1, "always", "eng"],
     "scope-case": [2, "always", "lowerCase"],
     "scope-empty": [2, "never"],
-    "subject-case": [2, "always", "lowerCase"],
+    "subject-case": [1, "always", "lowerCase"],
     "subject-empty": [2, "never"],
     "subject-full-stop": [2, "never", "."],
-    "subject-tense": [2, "never", ["past-tense"]],
+    "subject-tense": [
+      2,
+      "always",
+      [
+        "past-tense",
+        "present-imperative"
+      ]
+    ],
     "type-enum": [
       2,
       "always",
