@@ -34,7 +34,8 @@
     "LICENSE",
     "README.md",
     "lib/",
-    "!src/"
+    "!src/",
+    "!scripts/"
   ],
   "license": "MIT",
   "dependencies": {},
