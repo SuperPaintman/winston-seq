@@ -9,6 +9,87 @@
 
 --------------------------------------------------------------------------------
 
+
+## Installation
+
+```sh
+$ npm install --save winston-seq
+# Or with yarn
+$ yarn add winston-seq
+```
+
+
+--------------------------------------------------------------------------------
+
+
+## Usage
+
+```ts
+'use strict';
+import { Logger } from 'winston';
+import { Seq }    from 'winston-seq';
+
+const logger = new Logger({
+  transports: [
+    new Seq({
+      serverUrl:  'http://127.0.0.1:5341'
+      /* apiKey:     '7fs2V60izlkgau2ansjH' */
+    })
+  ]
+});
+```
+
+or
+
+```ts
+'use strict';
+var winston = require('winston');
+
+/**
+  * Requiring `winston-seq` will expose
+  * `winston.transports.Seq`
+  */
+require('winston-seq');
+
+winston.add(winston.transports.Seq, {
+  serverUrl:  'http://127.0.0.1:5341'
+  /* apiKey:     '7fs2V60izlkgau2ansjH' */
+});
+```
+
+
+Use non-standard levels? Overwrite the mapper:
+
+```ts
+// ...
+
+const logger = new Logger({
+  transports: [
+    new Seq({
+      levelMapper(level = '') {
+        switch (level.toLowerCase()) {
+          /**  Winston Level    ->     Seq Level */
+          case 'error':         return 'Error';
+          case 'warn':          return 'Warning';
+          case 'info':          return 'Information';
+          case 'debug':         return 'Debug';
+          case 'verbose':       return 'Verbose';
+          case 'silly':         return 'Verbose';
+          case 'fatal':         return 'Fatal';
+          default:              return 'Information';
+        }
+      }
+    })
+  ]
+});
+
+// ...
+```
+
+
+--------------------------------------------------------------------------------
+
+
 ## Build
 
 ```sh
