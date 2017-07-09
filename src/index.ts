@@ -66,7 +66,7 @@ export class Seq extends Transport implements ISeqTransportInstance {
 
     const { properties, errors } = this._formatMeta(meta);
 
-    if (errors.length) {
+    if (errors.length !== 0) {
       seqLog.exception = errors
         .map(({ error, id }) => this._getErrorStach(error, id))
         .join('\n\n');
@@ -259,4 +259,3 @@ export class Seq extends Transport implements ISeqTransportInstance {
  * is available and thus backwards compatible.
  */
 transports.Seq = Seq as any; /** @todo */
-
