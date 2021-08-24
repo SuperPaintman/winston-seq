@@ -1,5 +1,4 @@
 {
-  "rulesDirectory": "node_modules/tslint-eslint-rules/dist/rules",
   "rules": {
     "indent": [
       true,
@@ -64,7 +63,7 @@
       "LF"
     ],
     "no-trailing-whitespace": true,
-    "arrow-parens": true,
+    "arrow-parens": false,
     "comment-format": [
       true,
       "check-space"

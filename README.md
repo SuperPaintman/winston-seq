@@ -13,9 +13,9 @@
 ## Installation
 
 ```sh
-$ npm install --save winston-seq
+$ npm install --save @valuabletouch/winston-seq
 # Or with yarn
-$ yarn add winston-seq
+$ yarn add @valuabletouch/winston-seq
 ```
 
 
@@ -25,13 +25,12 @@ $ yarn add winston-seq
 ## Usage
 
 ```ts
-'use strict';
-import { Logger } from 'winston';
-import { Seq }    from 'winston-seq';
+import { createLogger } from 'winston';
+import { Transport as SeqTransport }    from 'winston-seq';
 
-const logger = new Logger({
+const logger = createLogger({
   transports: [
-    new Seq({
+    new SeqTransport({
       serverUrl:  'http://127.0.0.1:5341'
       /* apiKey:     '7fs2V60izlkgau2ansjH' */
     })
@@ -39,44 +38,25 @@ const logger = new Logger({
 });
 ```
 
-or
-
-```ts
-'use strict';
-var winston = require('winston');
-
-/**
-  * Requiring `winston-seq` will expose
-  * `winston.transports.Seq`
-  */
-require('winston-seq');
-
-winston.add(winston.transports.Seq, {
-  serverUrl:  'http://127.0.0.1:5341'
-  /* apiKey:     '7fs2V60izlkgau2ansjH' */
-});
-```
-
-
 Use non-standard levels? Overwrite the mapper:
 
 ```ts
 // ...
 
-const logger = new Logger({
+const logger = createLogger({
   transports: [
-    new Seq({
+    new SeqTransport({
       levelMapper(level = '') {
         switch (level.toLowerCase()) {
-          /**  Winston Level    ->     Seq Level */
-          case 'error':         return 'Error';
-          case 'warn':          return 'Warning';
-          case 'info':          return 'Information';
-          case 'debug':         return 'Debug';
-          case 'verbose':       return 'Verbose';
-          case 'silly':         return 'Verbose';
-          case 'fatal':         return 'Fatal';
-          default:              return 'Information';
+          // Winston   ->  Seq
+          case 'error':    return 'Error';
+          case 'warn':     return 'Warning';
+          case 'info':     return 'Information';
+          case 'debug':    return 'Debug';
+          case 'verbose':  return 'Verbose';
+          case 'silly':    return 'Verbose';
+          case 'fatal':    return 'Fatal';
+          default:         return 'Information';
         }
       }
     })
@@ -94,8 +74,6 @@ const logger = new Logger({
 
 ```sh
 $ npm install
-$ # or
-$ yarn
 $
 $ npm run build
 ```
@@ -103,18 +81,10 @@ $ npm run build
 
 --------------------------------------------------------------------------------
 
-## Test
-
-```sh
-$ npm run test
-```
-
-
---------------------------------------------------------------------------------
 
 ## Contributing
 
-1. Fork it (<https://github.com/SuperPaintman/winston-seq/fork>)
+1. Fork it (<https://github.com/valıuabletouch/winston-seq/fork>)
 2. Create your feature branch (`git checkout -b feature/<feature_name>`)
 3. Commit your changes (`git commit -am '<type>(<scope>): added some feature'`)
 4. Push to the branch (`git push origin feature/<feature_name>`)
@@ -126,6 +96,7 @@ $ npm run test
 ## Contributors
 
 - [SuperPaintman](https://github.com/SuperPaintman) SuperPaintman - creator, maintainer
+- [Valuable Touch](https://github.com/valuabletouch) Fork maintainer
 
 
 --------------------------------------------------------------------------------
@@ -141,14 +112,14 @@ $ npm run test
 [MIT][license-url]
 
 
-[license-url]: https://raw.githubusercontent.com/SuperPaintman/winston-seq/master/LICENSE
-[changelog-url]: https://raw.githubusercontent.com/SuperPaintman/winston-seq/master/CHANGELOG.md
-[npm-url]: https://www.npmjs.com/package/winston-seq
-[npm-v-image]: https://img.shields.io/npm/v/winston-seq.svg
-[npm-dm-image]: https://img.shields.io/npm/dm/winston-seq.svg
-[travis-image]: https://img.shields.io/travis/SuperPaintman/winston-seq/master.svg?label=linux
-[travis-url]: https://travis-ci.org/SuperPaintman/winston-seq
-[coveralls-image]: https://img.shields.io/coveralls/SuperPaintman/winston-seq/master.svg
-[coveralls-url]: https://coveralls.io/r/SuperPaintman/winston-seq?branch=master
+[license-url]: https://raw.githubusercontent.com/valuabletouch/winston-seq/master/LICENSE
+[changelog-url]: https://raw.githubusercontent.com/valuabletouch/winston-seq/master/CHANGELOG.md
+[npm-url]: https://www.npmjs.com/package/@valuabletouch/winston-seq
+[npm-v-image]: https://img.shields.io/npm/v/@valuabletouch/winston-seq.svg
+[npm-dm-image]: https://img.shields.io/npm/dm/@valuabletouch/winston-seq.svg
+[travis-image]: https://img.shields.io/travis/valuabletouch/winston-seq/master.svg?label=linux
+[travis-url]: https://travis-ci.org/valuabletouch/winston-seq
+[coveralls-image]: https://img.shields.io/coveralls/valuabletouch/winston-seq/master.svg
+[coveralls-url]: https://coveralls.io/r/valuabletouch/winston-seq?branch=master
 [commitizen-image]: https://img.shields.io/badge/commitizen-friendly-brightgreen.svg
 [commitizen-url]: https://commitizen.github.io/cz-cli/

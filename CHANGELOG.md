@@ -1,17 +1,8 @@
-<a name="0.1.0"></a>
-# 0.1.0 (2017-07-09)
+<a name="1.0.0"></a>
+# 1.0.0 - Fork from original repo (2021-08-24)
 
-
-### Features
-
-* initial commit ([b08ec53](https://github.com/SuperPaintman/winston-seq/commit/b08ec53))
-* **transport:** added more typings ([53a07aa](https://github.com/SuperPaintman/winston-seq/commit/53a07aa))
-* **transport:** added seq transport ([3294bc2](https://github.com/SuperPaintman/winston-seq/commit/3294bc2))
-
-
-### Performance Improvements
-
-* **transport:** changed check for errors ([7e5f836](https://github.com/SuperPaintman/winston-seq/commit/7e5f836))
-
-
-
+* `winston-transport` version updated
+* `seq-logging` version updated
+* Unused test packages removed
+* Code is simplified
+* Refactorings

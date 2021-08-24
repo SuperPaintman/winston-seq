@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
+    "target": "ES5",
+    "module": "ESNext",
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -18,13 +18,13 @@
       "node_modules/@types"
     ],
     "lib": [
-      "es6"
+      "ESNext"
     ],
-    "outDir": "./lib",
+    "outDir": "./dist",
     "rootDir": "./src"
   },
   "exclude": [
     "node_modules",
-    "lib"
+    "dist"
   ]
 }

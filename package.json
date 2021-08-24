@@ -1,18 +1,13 @@
 {
-  "name": "winston-seq",
-  "version": "0.1.0",
-  "description": "A Seq transport for Winston",
-  "main": "lib/index.js",
+  "name": "@valuabletouch/winston-seq",
+  "version": "1.0.0",
+  "description": "Another Seq transport for Winston",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
     "lint": "tslint src/**/*.ts",
-    "lint:commits-ci": "bash ./scripts/lint-commits",
-    "test": "mocha --opts ./mocha.opts ./lib/**/test.js",
-    "test:watch": "mocha --opts ./mocha.opts --watch ./lib/**/test.js",
-    "test-ci": "istanbul cover ./node_modules/mocha/bin/_mocha -- --opts ./mocha.opts ./lib/**/test.js",
-    "commitmsg": "conventional-changelog-lint -e",
-    "prepublish": "npm run lint && npm run build && npm run test",
+    "prepublish": "npm run lint && npm run build",
     "prepush": "npm run prepublish",
     "precommit": "npm run lint"
   },
@@ -25,11 +20,7 @@
     "winston-seq",
     "seq"
   ],
-  "author": {
-    "name": "SuperPaintman",
-    "email": "SuperPaintmanDeveloper@gmail.com",
-    "url": "https://superpaintman.com/"
-  },
+  "author": "Valuable Touch <dev@valuabletouch.com> (https://www.valuabletouch.com)",
   "files": [
     "LICENSE",
     "README.md",
@@ -39,27 +30,22 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "seq-logging": "0.1.6",
-    "winston": "2.3.1"
+    "seq-logging": "1.1.1",
+    "winston-transport": "4.4.0"
   },
   "devDependencies": {
-    "@types/chai": "4.0.1",
-    "@types/mocha": "2.2.41",
-    "@types/node": "8.0.9",
-    "@types/winston": "2.3.3",
-    "chai": "4.0.2",
-    "conventional-changelog-lint": "2.1.0",
-    "husky": "0.14.3",
-    "import-from": "2.1.0",
-    "istanbul": "0.4.5",
-    "mocha": "3.4.2",
-    "source-map-support": "0.4.15",
-    "tslint": "5.5.0",
-    "tslint-eslint-rules": "4.1.1",
-    "typescript": "2.4.1"
+    "@types/node": "^16.7.1",
+    "@types/triple-beam": "^1.3.2",
+    "@types/winston": "^2.4.4",
+    "tslint": "6.1.3",
+    "typescript": "4.3.5"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SuperPaintman/winston-seq.git"
-  }
+    "url": "git+https://github.com/valuabletouch/winston-seq.git"
+  },
+  "bugs": {
+    "url": "https://github.com/valuabletouch/winston-seq/issues"
+  },
+  "homepage": "https://github.com/valuabletouch/winston-seq#readme"
 }
