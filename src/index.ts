@@ -21,23 +21,6 @@ type ErrorHandler = (e: Error) => void;
 type RemoteConfigChangeHandler = (remoteConfig: RemoteConfig) => void;
 type LevelMapperHandler = (level: string) => SeqLogLevel;
 
-function defaultLevelMapper(level: string): SeqLogLevel {
-  switch (level?.toLowerCase()) {
-    case 'verbose':
-    case 'silly': return 'Verbose';
-
-    case 'debug': return 'Debug';
-    case 'info': return 'Information';
-    case 'warn': return 'Warning';
-    case 'error': return 'Error';
-
-    /** Non standart */
-    case 'fatal': return 'Fatal';
-
-    default: return 'Information';
-  }
-}
-
 interface IOption {
   format?: Format;
   level?: string;
@@ -56,6 +39,156 @@ interface IOption {
   onRemoteConfigChange?: RemoteConfigChangeHandler;
 
   levelMapper?: LevelMapperHandler;
+}
+
+function defaultLevelMapper(level: string): SeqLogLevel {
+  switch (level?.toLowerCase()) {
+    case 'verbose':
+    case 'silly': return 'Verbose';
+
+    case 'debug': return 'Debug';
+    case 'info': return 'Information';
+    case 'warn': return 'Warning';
+    case 'error': return 'Error';
+
+    /** Non standart */
+    case 'fatal': return 'Fatal';
+
+    default: return 'Information';
+  }
+}
+
+function isError(obj?: any): boolean {
+  if (!obj) {
+    return false;
+  }
+
+  if (obj instanceof Error) {
+    return true;
+  }
+
+  if (obj.constructor.name === 'Error') {
+    return true;
+  }
+
+  // quack-quack
+  if (typeof obj.name === 'string'
+    && typeof obj.message === 'string'
+    && typeof obj.stack === 'string') {
+    return true;
+  }
+
+  return false;
+}
+
+function isPrimitive(obj: any): boolean {
+  if (obj === null) {
+    return true;
+  }
+
+  switch (typeof obj) {
+    case 'undefined':
+    case 'string':
+    case 'number':
+    case 'boolean':
+      return true;
+
+    default: return false;
+  }
+}
+
+function formatMeta(args?: any[]): IFormattedMeta {
+  const errors: IFormattedMetaError[] = [];
+
+  return {
+    properties: formatProperty(args, errors),
+    errors
+  };
+}
+
+function getErrorStack(err: Error, id: IFormattedMetaErrorId): string {
+  const stack =
+    typeof err.stack !== 'undefined'
+      ? err.stack
+      : err.toString();
+
+  return `@${id}: ${stack}`;
+}
+
+function formatProperty(prop: any, errors: IFormattedMetaError[]): IFormattedProperty {
+  if (isError(prop)) {
+    const id = errors.length;
+
+    errors.push({ error: prop, id });
+
+    return { error: formatError(prop, id) };
+  }
+
+  if (isPrimitive(prop)) {
+    return prop;
+  }
+
+  if (prop instanceof Date) {
+    return { timestamp: formatDate(prop) };
+  }
+
+  if (prop instanceof Buffer) {
+    return { buffer: formatBuffer(prop) };
+  }
+
+  if (Array.isArray(prop)) {
+    return { array: formatArray(prop, errors) };
+  }
+
+  if (typeof prop === 'function') {
+    return { function: formatFunction(prop) };
+  }
+
+  if (typeof prop !== 'object') {
+    if (typeof prop.toString === 'function') {
+      return prop.toString();
+    }
+
+    return null;
+  }
+
+  const properties: { [key: string]: IFormattedProperty } = {};
+
+  for (let key in prop) {
+    const value = prop[key];
+
+    properties[key] = formatProperty(value, errors);
+  }
+
+  return properties;
+}
+
+function formatError(err: Error, id: IFormattedMetaErrorId) {
+  const result: { [key: string]: any } = {};
+
+  Object.getOwnPropertyNames(err)
+    .filter(key => key !== 'stack')
+    .forEach(key => result[key] = err[key as keyof Error]);
+
+  result.stack = `@${id}`;
+
+  return result;
+}
+
+function formatDate(date: Date): number {
+  return date.getTime();
+}
+
+function formatFunction(fn: Function): string {
+  return fn.toString();
+}
+
+function formatArray(arr: any[], errors: IFormattedMetaError[]): IFormattedProperty[] {
+  return arr.map(val => formatProperty(val, errors));
+}
+
+function formatBuffer(buffer: Buffer) {
+  return buffer.slice(0);
 }
 
 export class Transport extends TransportStream {
@@ -97,12 +230,12 @@ export class Transport extends TransportStream {
       messageTemplate: message
     };
 
-    const { properties, errors } = this.formatMeta(meta);
+    const { properties, errors } = formatMeta(meta);
 
     if (errors.length !== 0) {
       seqEvent.exception =
         errors
-          .map(({ error, id }) => this.getErrorStack(error, id))
+          .map(({ error, id }) => getErrorStack(error, id))
           .join('\n\n');
     }
 
@@ -125,141 +258,5 @@ export class Transport extends TransportStream {
 
   flush(): Promise<boolean> {
     return this.seqLogger.flush();
-  }
-
-  private isError(obj?: any): boolean {
-    if (!obj) {
-      return false;
-    }
-
-    if (obj instanceof Error) {
-      return true;
-    }
-
-    if (obj.constructor.name === 'Error') {
-      return true;
-    }
-
-    // quack-quack
-    if (typeof obj.name === 'string'
-      && typeof obj.message === 'string'
-      && typeof obj.stack === 'string') {
-      return true;
-    }
-
-    return false;
-  }
-
-  private isPrimitive(obj: any): boolean {
-    if (obj === null) {
-      return true;
-    }
-
-    switch (typeof obj) {
-      case 'undefined':
-      case 'string':
-      case 'number':
-      case 'boolean':
-        return true;
-
-      default: return false;
-    }
-  }
-
-  private formatMeta(args?: any[]): IFormattedMeta {
-    const errors: IFormattedMetaError[] = [];
-
-    return {
-      properties: this.formatProperty(args, errors),
-      errors
-    };
-  }
-
-  private getErrorStack(err: Error, id: IFormattedMetaErrorId): string {
-    const stack =
-      typeof err.stack !== 'undefined'
-        ? err.stack
-        : err.toString();
-
-    return `@${id}: ${stack}`;
-  }
-
-  private formatProperty(prop: any, errors: IFormattedMetaError[]): IFormattedProperty {
-    if (this.isError(prop)) {
-      const id = errors.length;
-
-      errors.push({ error: prop, id });
-
-      return { error: this.formatError(prop, id) };
-    }
-
-    if (this.isPrimitive(prop)) {
-      return prop;
-    }
-
-    if (prop instanceof Date) {
-      return { timestamp: this.formatDate(prop) };
-    }
-
-    if (prop instanceof Buffer) {
-      return { buffer: this.formatBuffer(prop) };
-    }
-
-    if (Array.isArray(prop)) {
-      return { array: this.formatArray(prop, errors) };
-    }
-
-    if (typeof prop === 'function') {
-      return { function: this.formatFunction(prop) };
-    }
-
-    if (typeof prop !== 'object') {
-      if (typeof prop.toString === 'function') {
-        return prop.toString();
-      }
-
-      return null;
-    }
-
-    const properties: { [key: string]: IFormattedProperty } = {};
-
-    for (let key in prop) {
-      const value = prop[key];
-
-      properties[key] = this.formatProperty(value, errors);
-    }
-
-    return properties;
-  }
-
-  private formatError(err: Error, id: IFormattedMetaErrorId) {
-    const result =
-      Object.getOwnPropertyNames(err)
-        .filter(key => key !== 'stack')
-        .reduce<{ [key: string]: any }>((res, key: keyof Error) => {
-          res[key] = err[key];
-
-          return res;
-        }, {});
-
-    result.stack = `@${id}`;
-
-    return result;
-  }
-
-  private formatDate(date: Date): number {
-    return date.getTime();
-  }
-
-  private formatFunction(fn: Function): string {
-    return fn.toString();
-  }
-
-  private formatArray(arr: any[], errors: IFormattedMetaError[]): IFormattedProperty[] {
-    return arr.map(val => this.formatProperty(val, errors));
-  }
-
-  private formatBuffer(buffer: Buffer) {
-    return buffer.slice(0);
   }
 }
