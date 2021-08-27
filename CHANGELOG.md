@@ -1,3 +1,6 @@
+<a name="1.0.3"></a>
+# 1.0.3 - Fixes and refactorings (2021-08-27)
+
 <a name="1.0.2"></a>
 # 1.0.2 - TS config fix (2021-08-24)
 
