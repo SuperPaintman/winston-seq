@@ -230,32 +230,38 @@ export class Transport extends TransportStream {
   }
 
   log(info: any, next: () => void): any {
-    const level = info[LEVEL] ?? info['level'];
+    setImmediate(() => {
+      try {
+        const level = info[LEVEL] ?? info['level'];
 
-    const message = info[MESSAGE] ?? info['message'];
+        const message = info[MESSAGE] ?? info['message'];
 
-    const meta = info[SPLAT];
+        const meta = info[SPLAT];
 
-    const seqEvent: SeqEvent = {
-      timestamp: new Date(),
-      level: this.levelMapper(level),
-      messageTemplate: message
-    };
+        const seqEvent: SeqEvent = {
+          timestamp: new Date(),
+          level: this.levelMapper(level),
+          messageTemplate: message
+        };
 
-    const { properties, errors } = formatMeta(meta);
+        const { properties, errors } = formatMeta(meta);
 
-    if (errors.length !== 0) {
-      seqEvent.exception =
-        errors
-          .map(({ error, id }) => getErrorStack(error, id))
-          .join('\n\n');
-    }
+        if (errors.length !== 0) {
+          seqEvent.exception =
+            errors
+              .map(({ error, id }) => getErrorStack(error, id))
+              .join('\n\n');
+        }
 
-    if (properties !== null) {
-      seqEvent.properties = properties;
-    }
+        if (properties !== null) {
+          seqEvent.properties = properties;
+        }
 
-    this.seqLogger.emit(seqEvent);
+        this.seqLogger.emit(seqEvent);
+      } catch (err) {
+        console.error('[@valuabletouch/winston-seq]', err);
+      }
+    });
 
     this.emit('logged', info);
 
