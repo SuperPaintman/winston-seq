@@ -67,7 +67,7 @@ function isError(obj?: any): boolean {
     return true;
   }
 
-  if (obj.constructor.name === 'Error') {
+  if (obj.constructor?.name === 'Error') {
     return true;
   }
 
@@ -101,12 +101,16 @@ function formatMeta(args?: any[]): IFormattedMeta {
   const errors: IFormattedMetaError[] = [];
 
   return {
-    properties: formatProperty(args, errors),
+    properties: format(args, errors),
     errors
   };
 }
 
 function getErrorStack(err: Error, id: IFormattedMetaErrorId): string {
+  if (!err) {
+    return `@${id}: No stack`;
+  }
+
   const stack =
     typeof err.stack !== 'undefined'
       ? err.stack
@@ -115,38 +119,42 @@ function getErrorStack(err: Error, id: IFormattedMetaErrorId): string {
   return `@${id}: ${stack}`;
 }
 
-function formatProperty(prop: any, errors: IFormattedMetaError[]): IFormattedProperty {
-  if (isError(prop)) {
+function format(val: any, errors: IFormattedMetaError[]): IFormattedProperty {
+  if (val === null || typeof val === 'undefined') {
+    return null;
+  }
+
+  if (isError(val)) {
     const id = errors.length;
 
-    errors.push({ error: prop, id });
+    errors.push({ error: val, id });
 
-    return { error: formatError(prop, id) };
+    return { error: formatError(val, id) };
   }
 
-  if (isPrimitive(prop)) {
-    return prop;
+  if (isPrimitive(val)) {
+    return val;
   }
 
-  if (prop instanceof Date) {
-    return { timestamp: formatDate(prop) };
+  if (val instanceof Date) {
+    return { timestamp: formatDate(val) };
   }
 
-  if (prop instanceof Buffer) {
-    return { buffer: formatBuffer(prop) };
+  if (val instanceof Buffer) {
+    return { buffer: formatBuffer(val) };
   }
 
-  if (Array.isArray(prop)) {
-    return { array: formatArray(prop, errors) };
+  if (Array.isArray(val)) {
+    return { array: formatArray(val, errors) };
   }
 
-  if (typeof prop === 'function') {
-    return { function: formatFunction(prop) };
+  if (typeof val === 'function') {
+    return { function: formatFunction(val) };
   }
 
-  if (typeof prop !== 'object') {
-    if (typeof prop.toString === 'function') {
-      return prop.toString();
+  if (typeof val !== 'object') {
+    if (typeof val.toString === 'function') {
+      return val.toString();
     }
 
     return null;
@@ -154,10 +162,10 @@ function formatProperty(prop: any, errors: IFormattedMetaError[]): IFormattedPro
 
   const properties: { [key: string]: IFormattedProperty } = {};
 
-  for (let key in prop) {
-    const value = prop[key];
+  for (let key in val) {
+    const value = val[key];
 
-    properties[key] = formatProperty(value, errors);
+    properties[key] = format(value, errors);
   }
 
   return properties;
@@ -184,7 +192,7 @@ function formatFunction(fn: Function): string {
 }
 
 function formatArray(arr: any[], errors: IFormattedMetaError[]): IFormattedProperty[] {
-  return arr.map(val => formatProperty(val, errors));
+  return arr.map(val => format(val, errors));
 }
 
 function formatBuffer(buffer: Buffer) {
@@ -202,6 +210,10 @@ export class Transport extends TransportStream {
 
   constructor(options: IOption = {}) {
     super(options);
+
+    if (typeof options !== 'object' || options === null) {
+      options = {};
+    }
 
     if (typeof options.onError !== 'function') {
       options.onError = (err: Error) => this.emit('error', err);
