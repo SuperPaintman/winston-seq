@@ -1,6 +1,6 @@
 {
   "name": "@valuabletouch/winston-seq",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Another Seq transport for Winston",
   "author": "Valuable Touch <dev@valuabletouch.com> (https://www.valuabletouch.com)",
   "contributors": [

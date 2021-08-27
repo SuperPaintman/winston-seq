@@ -1,14 +1,21 @@
+<a name="1.0.5"></a>
+## 1.0.5 - Error fixes (2021-08-27)
+
+* Prevent transport crash
+* Prevent circular dependency maximum stack size error
+* Run non-blocking
+
 <a name="1.0.3"></a>
-# 1.0.3 - Fixes and refactorings (2021-08-27)
+## 1.0.3 - Fixes and refactorings (2021-08-27)
 
 <a name="1.0.2"></a>
-# 1.0.2 - TS config fix (2021-08-24)
+## 1.0.2 - TS config fix (2021-08-24)
 
 <a name="1.0.1"></a>
-# 1.0.1 - TS config fix (2021-08-24)
+## 1.0.1 - TS config fix (2021-08-24)
 
 <a name="1.0.0"></a>
-# 1.0.0 - Fork from original repo (2021-08-24)
+## 1.0.0 - Fork from original repo (2021-08-24)
 
 * `winston-transport` version updated
 * `seq-logging` version updated
