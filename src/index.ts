@@ -100,8 +100,10 @@ function isPrimitive(obj: any): boolean {
 function formatMeta(args?: any[]): IFormattedMeta {
   const errors: IFormattedMetaError[] = [];
 
+  const allValues: any[] = [];
+
   return {
-    properties: format(args, errors),
+    properties: format(args, errors, allValues),
     errors
   };
 }
@@ -119,10 +121,16 @@ function getErrorStack(err: Error, id: IFormattedMetaErrorId): string {
   return `@${id}: ${stack}`;
 }
 
-function format(val: any, errors: IFormattedMetaError[]): IFormattedProperty {
+function format(val: any, errors: IFormattedMetaError[], allValues: any[]): IFormattedProperty {
   if (val === null || typeof val === 'undefined') {
     return null;
   }
+
+  if (allValues.includes(val)) {
+    return '[Circular]';
+  }
+
+  allValues.push(val);
 
   if (isError(val)) {
     const id = errors.length;
@@ -145,7 +153,7 @@ function format(val: any, errors: IFormattedMetaError[]): IFormattedProperty {
   }
 
   if (Array.isArray(val)) {
-    return { array: formatArray(val, errors) };
+    return { array: formatArray(val, errors, allValues) };
   }
 
   if (typeof val === 'function') {
@@ -165,7 +173,7 @@ function format(val: any, errors: IFormattedMetaError[]): IFormattedProperty {
   for (let key in val) {
     const value = val[key];
 
-    properties[key] = format(value, errors);
+    properties[key] = format(value, errors, allValues);
   }
 
   return properties;
@@ -183,16 +191,16 @@ function formatError(err: Error, id: IFormattedMetaErrorId) {
   return result;
 }
 
-function formatDate(date: Date): number {
-  return date.getTime();
+function formatDate(date: Date): string {
+  return date.toISOString();
 }
 
 function formatFunction(fn: Function): string {
   return fn.toString();
 }
 
-function formatArray(arr: any[], errors: IFormattedMetaError[]): IFormattedProperty[] {
-  return arr.map(val => format(val, errors));
+function formatArray(arr: any[], errors: IFormattedMetaError[], allValues: any[]): IFormattedProperty[] {
+  return arr.map(val => format(val, errors, allValues));
 }
 
 function formatBuffer(buffer: Buffer) {
