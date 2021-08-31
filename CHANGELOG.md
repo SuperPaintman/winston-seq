@@ -1,3 +1,9 @@
+<a name="1.1.0"></a>
+## 1.1.0 - Info parsing changed (2021-08-31)
+
+* Info parsing changed
+* TypeScript version updated
+
 <a name="1.0.5"></a>
 ## 1.0.5 - Error fixes (2021-08-27)
 

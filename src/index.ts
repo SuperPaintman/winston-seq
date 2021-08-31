@@ -4,8 +4,6 @@ import { Format } from 'logform';
 
 import { Logger, RemoteConfig, SeqEvent, SeqLoggerConfig, SeqLogLevel } from 'seq-logging';
 
-import { LEVEL, MESSAGE, SPLAT } from 'triple-beam';
-
 import TransportStream from 'winston-transport';
 
 type IFormattedMetaErrorId = number;
@@ -110,7 +108,7 @@ function formatMeta(args?: any[]): IFormattedMeta {
 
 function getErrorStack(err: Error, id: IFormattedMetaErrorId): string {
   if (!err) {
-    return `@${id}: No stack`;
+    return `[${id}]: <No stack>`;
   }
 
   const stack =
@@ -118,7 +116,7 @@ function getErrorStack(err: Error, id: IFormattedMetaErrorId): string {
       ? err.stack
       : err.toString();
 
-  return `@${id}: ${stack}`;
+  return `[${id}]: ${stack}`;
 }
 
 function format(val: any, errors: IFormattedMetaError[], allValues: any[]): IFormattedProperty {
@@ -186,7 +184,7 @@ function formatError(err: Error, id: IFormattedMetaErrorId) {
     .filter(key => key !== 'stack')
     .forEach(key => result[key] = err[key as keyof Error]);
 
-  result.stack = `@${id}`;
+  result.stack = `*[${id}]`;
 
   return result;
 }
@@ -240,14 +238,13 @@ export class Transport extends TransportStream {
   log(info: any, next: () => void): any {
     setImmediate(() => {
       try {
-        const level = info[LEVEL] ?? info['level'];
-
-        const message = info[MESSAGE] ?? info['message'];
-
-        const meta = info[SPLAT];
+        const { level, message, timestamp, ...meta } = info;
 
         const seqEvent: SeqEvent = {
-          timestamp: new Date(),
+          timestamp:
+            timestamp && !Number.isNaN(Date.parse(timestamp))
+              ? new Date(Date.parse(timestamp))
+              : new Date(),
           level: this.levelMapper(level),
           messageTemplate: message
         };
