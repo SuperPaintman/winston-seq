@@ -15,6 +15,30 @@ interface IFormattedMeta {
   errors: IFormattedMetaError[];
 }
 
+interface IFormattedError {
+  $error: { [key: string]: any };
+}
+
+interface IFormattedDate {
+  $date: string;
+}
+
+interface IFormattedBuffer {
+  $buffer: Buffer;
+}
+
+interface IFormattedSymbol {
+  $symbol: string;
+}
+
+interface IFormattedFunction {
+  $function: string;
+}
+
+interface IFormattedArray {
+  $array: IFormattedProperty[];
+}
+
 type ErrorHandler = (e: Error) => void;
 type RemoteConfigChangeHandler = (remoteConfig: RemoteConfig) => void;
 type LevelMapperHandler = (level: string) => SeqLogLevel;
@@ -79,20 +103,25 @@ function isError(obj?: any): boolean {
   return false;
 }
 
-function isPrimitive(obj: any): boolean {
-  if (obj === null) {
+function isPrimitive(val: any): boolean {
+  if (val === null) {
     return true;
   }
 
-  switch (typeof obj) {
+  switch (typeof val) {
     case 'undefined':
     case 'string':
     case 'number':
+    case 'bigint':
     case 'boolean':
       return true;
 
     default: return false;
   }
+}
+
+function isComplex(val: any) {
+  return val && (typeof val === 'object' || typeof val === 'function');
 }
 
 function formatMeta(args?: any[]): IFormattedMeta {
@@ -124,7 +153,7 @@ function format(val: any, errors: IFormattedMetaError[], allValues: any[]): IFor
     return null;
   }
 
-  if (allValues.includes(val)) {
+  if (isComplex(val) && allValues.includes(val)) {
     return '[Circular]';
   }
 
@@ -135,7 +164,7 @@ function format(val: any, errors: IFormattedMetaError[], allValues: any[]): IFor
 
     errors.push({ error: val, id });
 
-    return { error: formatError(val, id) };
+    return formatError(val, id);
   }
 
   if (isPrimitive(val)) {
@@ -143,19 +172,23 @@ function format(val: any, errors: IFormattedMetaError[], allValues: any[]): IFor
   }
 
   if (val instanceof Date) {
-    return { timestamp: formatDate(val) };
+    return formatDate(val);
   }
 
   if (val instanceof Buffer) {
-    return { buffer: formatBuffer(val) };
+    return formatBuffer(val);
   }
 
-  if (Array.isArray(val)) {
-    return { array: formatArray(val, errors, allValues) };
+  if (typeof val === 'symbol') {
+    return formatSymbol(val);
   }
 
   if (typeof val === 'function') {
-    return { function: formatFunction(val) };
+    return formatFunction(val);
+  }
+
+  if (Array.isArray(val)) {
+    return formatArray(val, errors, allValues);
   }
 
   if (typeof val !== 'object') {
@@ -177,32 +210,36 @@ function format(val: any, errors: IFormattedMetaError[], allValues: any[]): IFor
   return properties;
 }
 
-function formatError(err: Error, id: IFormattedMetaErrorId) {
+function formatError(error: Error, id: IFormattedMetaErrorId): IFormattedError {
   const result: { [key: string]: any } = {};
 
-  Object.getOwnPropertyNames(err)
+  Object.getOwnPropertyNames(error)
     .filter(key => key !== 'stack')
-    .forEach(key => result[key] = err[key as keyof Error]);
+    .forEach(key => result[key] = error[key as keyof Error]);
 
   result.stack = `*[${id}]`;
 
-  return result;
+  return { $error: result };
 }
 
-function formatDate(date: Date): string {
-  return date.toISOString();
+function formatDate(date: Date): IFormattedDate {
+  return { $date: date.toISOString() };
 }
 
-function formatFunction(fn: Function): string {
-  return fn.toString();
+function formatBuffer(buffer: Buffer): IFormattedBuffer {
+  return { $buffer: buffer.slice(0) };
 }
 
-function formatArray(arr: any[], errors: IFormattedMetaError[], allValues: any[]): IFormattedProperty[] {
-  return arr.map(val => format(val, errors, allValues));
+function formatSymbol(symbol: Symbol): IFormattedSymbol {
+  return { $symbol: Symbol.prototype.toString.call(symbol) };
 }
 
-function formatBuffer(buffer: Buffer) {
-  return buffer.slice(0);
+function formatFunction(fn: Function): IFormattedFunction {
+  return { $function: fn.toString() };
+}
+
+function formatArray(arr: any[], errors: IFormattedMetaError[], allValues: any[]): IFormattedArray {
+  return { $array: arr.map(val => format(val, errors, allValues)) };
 }
 
 export class Transport extends TransportStream {
