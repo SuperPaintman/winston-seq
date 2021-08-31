@@ -35,10 +35,6 @@ interface IFormattedFunction {
   $function: string;
 }
 
-interface IFormattedArray {
-  $array: IFormattedProperty[];
-}
-
 type ErrorHandler = (e: Error) => void;
 type RemoteConfigChangeHandler = (remoteConfig: RemoteConfig) => void;
 type LevelMapperHandler = (level: string) => SeqLogLevel;
@@ -124,13 +120,13 @@ function isComplex(val: any) {
   return val && (typeof val === 'object' || typeof val === 'function');
 }
 
-function formatMeta(args?: any[]): IFormattedMeta {
+function formatMeta(meta?: any): IFormattedMeta {
   const errors: IFormattedMetaError[] = [];
 
   const allValues: any[] = [];
 
   return {
-    properties: format(args, errors, allValues),
+    properties: format(meta, errors, allValues, '$root'),
     errors
   };
 }
@@ -148,16 +144,24 @@ function getErrorStack(err: Error, id: IFormattedMetaErrorId): string {
   return `[${id}]: ${stack}`;
 }
 
-function format(val: any, errors: IFormattedMetaError[], allValues: any[]): IFormattedProperty {
+function format(val: any, errors: IFormattedMetaError[], allValues: any[], path: string): IFormattedProperty {
   if (val === null || typeof val === 'undefined') {
     return null;
   }
 
-  if (isComplex(val) && allValues.includes(val)) {
-    return '[Circular]';
-  }
+  if (isComplex(val)) {
+    if (allValues.some(v => v.value === val)) {
+      const existingValue = allValues.find(v => v.value === val);
 
-  allValues.push(val);
+      return { $circular: existingValue.path };
+    }
+    else {
+      allValues.push({
+        value: val,
+        path
+      });
+    }
+  } 
 
   if (isError(val)) {
     const id = errors.length;
@@ -188,7 +192,7 @@ function format(val: any, errors: IFormattedMetaError[], allValues: any[]): IFor
   }
 
   if (Array.isArray(val)) {
-    return formatArray(val, errors, allValues);
+    return val.map((v, i) => format(v, errors, allValues, `${path}[${i}]`));
   }
 
   if (typeof val !== 'object') {
@@ -204,7 +208,7 @@ function format(val: any, errors: IFormattedMetaError[], allValues: any[]): IFor
   for (let key in val) {
     const value = val[key];
 
-    properties[key] = format(value, errors, allValues);
+    properties[key] = format(value, errors, allValues, `${path}.${key}`);
   }
 
   return properties;
@@ -236,10 +240,6 @@ function formatSymbol(symbol: Symbol): IFormattedSymbol {
 
 function formatFunction(fn: Function): IFormattedFunction {
   return { $function: fn.toString() };
-}
-
-function formatArray(arr: any[], errors: IFormattedMetaError[], allValues: any[]): IFormattedArray {
-  return { $array: arr.map(val => format(val, errors, allValues)) };
 }
 
 export class Transport extends TransportStream {
