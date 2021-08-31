@@ -161,7 +161,7 @@ function format(val: any, errors: IFormattedMetaError[], allValues: any[], path:
         path
       });
     }
-  } 
+  }
 
   if (isError(val)) {
     const id = errors.length;
