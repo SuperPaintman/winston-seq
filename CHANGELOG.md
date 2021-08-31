@@ -1,3 +1,10 @@
+<a name="1.1.1"></a>
+## 1.1.1 - Circular check improved (2021-08-31)
+
+* Circular check improved
+* Non-primitive value display improved
+* Circular value display improved
+
 <a name="1.1.0"></a>
 ## 1.1.0 - Info parsing changed (2021-08-31)
 
