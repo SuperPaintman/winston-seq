@@ -152,7 +152,7 @@ function getErrorStack(err: Error, id: IFormattedMetaErrorId): string {
 }
 
 function format(val: any, path: string, errors: IFormattedMetaError[], allValues: any[], options: IOption): IFormattedProperty {
-  if (val == null) {
+  if (val == null) { // tslint:disable-line
     return null;
   }
 
@@ -234,7 +234,7 @@ function formatDate(date: Date): IFormattedDate {
 }
 
 function formatBuffer(buffer: Buffer, maxLength?: number): IFormattedBuffer | string {
-  if (maxLength != null && maxLength <= 0) {
+  if (maxLength != null && maxLength <= 0) { // tslint:disable-line
     return '$buffer';
   }
 
@@ -253,7 +253,7 @@ function formatSymbol(symbol: Symbol): IFormattedSymbol {
 }
 
 function formatFunction(fn: Function, maxLength?: number): IFormattedFunction | string {
-  if (maxLength != null && maxLength <= 0) {
+  if (maxLength != null && maxLength <= 0) { // tslint:disable-line
     return '$function';
   }
 
