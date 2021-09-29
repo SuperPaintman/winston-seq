@@ -50,6 +50,8 @@ interface IOption {
   onRemoteConfigChange?: RemoteConfigChangeHandler;
 
   levelMapper?: LevelMapperHandler;
+  maxBufferLength?: number;
+  maxFunctionSourceLength?: number;
 }
 ```
 

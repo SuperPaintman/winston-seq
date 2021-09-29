@@ -1,3 +1,10 @@
+<a name="1.2.0"></a>
+## 1.2.0 - Max lengths for buffer and function src (2021-09-29)
+
+* Max lengths for buffer added
+* Max lengths for function src added
+* Refactorings
+
 <a name="1.1.1"></a>
 ## 1.1.1 - Circular check improved (2021-08-31)
 

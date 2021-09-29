@@ -8,11 +8,16 @@ import TransportStream from 'winston-transport';
 
 type IFormattedMetaErrorId = number;
 type IFormattedMetaError = { error: Error, id: IFormattedMetaErrorId };
-type IFormattedProperty = any;
+
+type IFormattedProperty = IFormattedCircular | IFormattedError | IFormattedDate | IFormattedBuffer | IFormattedSymbol | IFormattedFunction | Array<IFormattedProperty> | { [key: string]: IFormattedProperty } | string | null;
 
 interface IFormattedMeta {
-  properties: IFormattedProperty | null;
+  properties: IFormattedProperty;
   errors: IFormattedMetaError[];
+}
+
+interface IFormattedCircular {
+  $circular: string;
 }
 
 interface IFormattedError {
@@ -32,7 +37,7 @@ interface IFormattedSymbol {
 }
 
 interface IFormattedFunction {
-  $function: string;
+  $function: { [key: string]: string };
 }
 
 type ErrorHandler = (e: Error) => void;
@@ -57,6 +62,8 @@ interface IOption {
   onRemoteConfigChange?: RemoteConfigChangeHandler;
 
   levelMapper?: LevelMapperHandler;
+  maxBufferLength?: number;
+  maxFunctionSourceLength?: number;
 }
 
 function defaultLevelMapper(level: string): SeqLogLevel {
@@ -120,13 +127,13 @@ function isComplex(val: any) {
   return val && (typeof val === 'object' || typeof val === 'function');
 }
 
-function formatMeta(meta?: any): IFormattedMeta {
+function formatMeta(options: IOption, meta?: any): IFormattedMeta {
   const errors: IFormattedMetaError[] = [];
 
   const allValues: any[] = [];
 
   return {
-    properties: format(meta, errors, allValues, '$root'),
+    properties: format(meta, '$root', errors, allValues, options),
     errors
   };
 }
@@ -144,23 +151,15 @@ function getErrorStack(err: Error, id: IFormattedMetaErrorId): string {
   return `[${id}]: ${stack}`;
 }
 
-function format(val: any, errors: IFormattedMetaError[], allValues: any[], path: string): IFormattedProperty {
-  if (val === null || typeof val === 'undefined') {
+function format(val: any, path: string, errors: IFormattedMetaError[], allValues: any[], options: IOption): IFormattedProperty {
+  if (val == null) {
     return null;
   }
 
-  if (isComplex(val)) {
-    if (allValues.some(v => v.value === val)) {
-      const existingValue = allValues.find(v => v.value === val);
+  const circularResult = checkCircular(val, path, allValues);
 
-      return { $circular: existingValue.path };
-    }
-    else {
-      allValues.push({
-        value: val,
-        path
-      });
-    }
+  if (circularResult) {
+    return circularResult;
   }
 
   if (isError(val)) {
@@ -180,7 +179,7 @@ function format(val: any, errors: IFormattedMetaError[], allValues: any[], path:
   }
 
   if (val instanceof Buffer) {
-    return formatBuffer(val);
+    return formatBuffer(val, options.maxBufferLength);
   }
 
   if (typeof val === 'symbol') {
@@ -188,30 +187,34 @@ function format(val: any, errors: IFormattedMetaError[], allValues: any[], path:
   }
 
   if (typeof val === 'function') {
-    return formatFunction(val);
+    return formatFunction(val, options.maxFunctionSourceLength);
   }
 
   if (Array.isArray(val)) {
-    return val.map((v, i) => format(v, errors, allValues, `${path}[${i}]`));
+    return formatArray(val, path, errors, allValues, options);
   }
 
   if (typeof val !== 'object') {
-    if (typeof val.toString === 'function') {
-      return val.toString();
+    return formatNonObject(val);
+  }
+
+  return formatProperties(val, path, errors, allValues, options);
+}
+
+function checkCircular(val: any, path: string, allValues: any[]): IFormattedCircular | undefined {
+  if (isComplex(val)) {
+    if (allValues.some(v => v.value === val)) {
+      const existingValue = allValues.find(v => v.value === val);
+
+      return { $circular: existingValue.path };
     }
-
-    return null;
+    else {
+      allValues.push({
+        value: val,
+        path
+      });
+    }
   }
-
-  const properties: { [key: string]: IFormattedProperty } = {};
-
-  for (let key in val) {
-    const value = val[key];
-
-    properties[key] = format(value, errors, allValues, `${path}.${key}`);
-  }
-
-  return properties;
 }
 
 function formatError(error: Error, id: IFormattedMetaErrorId): IFormattedError {
@@ -230,16 +233,66 @@ function formatDate(date: Date): IFormattedDate {
   return { $date: date.toISOString() };
 }
 
-function formatBuffer(buffer: Buffer): IFormattedBuffer {
-  return { $buffer: buffer.slice(0) };
+function formatBuffer(buffer: Buffer, maxLength?: number): IFormattedBuffer | string {
+  if (maxLength != null && maxLength <= 0) {
+    return '$buffer';
+  }
+
+  const length = buffer.length;
+
+  return {
+    $buffer:
+      maxLength && length > maxLength
+        ? buffer.slice(0, maxLength)
+        : buffer.slice(0)
+  };
 }
 
 function formatSymbol(symbol: Symbol): IFormattedSymbol {
   return { $symbol: Symbol.prototype.toString.call(symbol) };
 }
 
-function formatFunction(fn: Function): IFormattedFunction {
-  return { $function: fn.toString() };
+function formatFunction(fn: Function, maxLength?: number): IFormattedFunction | string {
+  if (maxLength != null && maxLength <= 0) {
+    return '$function';
+  }
+
+  let src = fn.toString();
+
+  if (maxLength && src.length > maxLength) {
+    src = src.substring(0, maxLength - 8) + '\n// ...';
+  }
+
+  return {
+    $function: {
+      name: fn.name,
+      src
+    }
+  };
+}
+
+function formatArray(val: Array<any>, path: string, errors: IFormattedMetaError[], allValues: any[], options: IOption): Array<IFormattedProperty> {
+  return val.map((v, i) => format(v, `${path}[${i}]`, errors, allValues, options));
+}
+
+function formatNonObject(val: any): string | null {
+  if (typeof val.toString === 'function') {
+    return val.toString();
+  }
+
+  return null;
+}
+
+function formatProperties(val: any, path: string, errors: IFormattedMetaError[], allValues: any[], options: IOption): { [key: string]: IFormattedProperty } {
+  const properties: { [key: string]: IFormattedProperty } = {};
+
+  for (let key in val) {
+    const value = val[key];
+
+    properties[key] = format(value, `${path}.${key}`, errors, allValues, options);
+  }
+
+  return properties;
 }
 
 export class Transport extends TransportStream {
@@ -250,6 +303,8 @@ export class Transport extends TransportStream {
   private seqLoggerConfig: SeqLoggerConfig;
 
   private seqLogger: Logger;
+
+  private options: IOption;
 
   constructor(options: IOption = {}) {
     super(options);
@@ -270,6 +325,8 @@ export class Transport extends TransportStream {
       typeof options.levelMapper === 'function'
         ? options.levelMapper
         : defaultLevelMapper;
+
+    this.options = options;
   }
 
   log(info: any, next: () => void): any {
@@ -286,7 +343,7 @@ export class Transport extends TransportStream {
           messageTemplate: message
         };
 
-        const { properties, errors } = formatMeta(meta);
+        const { properties, errors } = formatMeta(this.options, meta);
 
         if (errors.length !== 0) {
           seqEvent.exception =
@@ -296,7 +353,7 @@ export class Transport extends TransportStream {
         }
 
         if (properties !== null) {
-          seqEvent.properties = properties;
+          seqEvent.properties = properties as object;
         }
 
         this.seqLogger.emit(seqEvent);
