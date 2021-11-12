@@ -64,6 +64,7 @@ interface IOption {
   levelMapper?: LevelMapperHandler;
   maxBufferLength?: number;
   maxFunctionSourceLength?: number;
+  applicationName?: string;
 }
 
 function defaultLevelMapper(level: string): SeqLogLevel {
@@ -327,6 +328,10 @@ export class Transport extends TransportStream {
         : defaultLevelMapper;
 
     this.options = options;
+
+    if (!this.options.applicationName) {
+      this.options.applicationName = `${process.title}-${process.pid}`;
+    }
   }
 
   log(info: any, next: () => void): any {
@@ -334,27 +339,28 @@ export class Transport extends TransportStream {
       try {
         const { level, message, timestamp, ...meta } = info;
 
-        const seqEvent: SeqEvent = {
-          timestamp:
-            timestamp && !Number.isNaN(Date.parse(timestamp))
-              ? new Date(Date.parse(timestamp))
-              : new Date(),
-          level: this.levelMapper(level),
-          messageTemplate: message
-        };
-
         const { properties, errors } = formatMeta(this.options, meta);
 
-        if (errors.length !== 0) {
-          seqEvent.exception =
-            errors
-              .map(({ error, id }) => getErrorStack(error, id))
-              .join('\n\n');
-        }
+        const ts = Date.parse(timestamp);
 
-        if (properties !== null) {
-          seqEvent.properties = properties as object;
-        }
+        const seqEvent: SeqEvent = {
+          timestamp:
+            timestamp && !Number.isNaN(ts)
+              ? new Date(ts)
+              : new Date(),
+          level: this.levelMapper(level),
+          messageTemplate: message,
+          properties: {
+            applicationName: this.options.applicationName,
+            data: properties
+          },
+          exception:
+            errors.length > 0
+              ? errors
+                .map(({ error, id }) => getErrorStack(error, id))
+                .join('\n\n')
+              : void 0
+        };
 
         this.seqLogger.emit(seqEvent);
       } catch (err) {
