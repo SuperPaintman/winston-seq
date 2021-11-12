@@ -1,3 +1,9 @@
+<a name="1.3.0"></a>
+## 1.3.0 - Application name support (2021-11-12)
+
+* Application name option added
+* SeqEvent creation refactored
+
 <a name="1.2.0"></a>
 ## 1.2.0 - Max lengths for buffer and function src (2021-09-29)
 
