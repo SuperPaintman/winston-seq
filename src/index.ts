@@ -352,7 +352,7 @@ export class Transport extends TransportStream {
           messageTemplate: message,
           properties: {
             applicationName: this.options.applicationName,
-            ...properties
+            ...(properties as Object)
           },
           exception:
             errors.length > 0
