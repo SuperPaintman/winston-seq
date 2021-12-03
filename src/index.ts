@@ -49,7 +49,7 @@ interface IOption {
   level?: string;
   silent?: boolean;
   handleExceptions?: boolean;
-  spreadProps:boolean;
+  spreadProps?: boolean;
   serverUrl?: string;
   apiKey?: string;
   maxBatchingTime?: number;
@@ -347,14 +347,14 @@ export class Transport extends TransportStream {
         if (this.options.spreadProps){
           propertiesParam =  {
             applicationName: this.options.applicationName,
-          ...(properties as Object)}
+          ...(properties as Object)
+          };
         }
         else{
           propertiesParam =  {
             applicationName: this.options.applicationName,
             data: properties
-          }
-
+          };
         }
 
         const seqEvent: SeqEvent = {
@@ -364,7 +364,7 @@ export class Transport extends TransportStream {
               : new Date(),
           level: this.levelMapper(level),
           messageTemplate: message,
-          properties:propertiesParam,
+          properties: propertiesParam,
           exception:
             errors.length > 0
               ? errors
