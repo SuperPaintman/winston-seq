@@ -1,3 +1,8 @@
+<a name="1.4.0"></a>
+## 1.4.0 -Add option to Spread the props (2021-12-03)
+
+* Add option to IOptions to spread the props instead of sending on data object
+
 <a name="1.3.0"></a>
 ## 1.3.0 - Application name support (2021-11-12)
 

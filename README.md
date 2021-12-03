@@ -37,7 +37,7 @@ interface IOption {
   level?: string;
   silent?: boolean;
   handleExceptions?: boolean;
-
+  spreadProps:boolean;
   serverUrl?: string;
   apiKey?: string;
   maxBatchingTime?: number;
