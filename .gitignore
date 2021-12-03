@@ -4,5 +4,9 @@
 # NPM
 node_modules/
 
-# Lib
-lib/
+# Dist
+dist/
+
+.DS_Store
+
+*.tgz

@@ -1,154 +1,115 @@
-# winston-seq
+# @valuabletouch/winston-seq
 
-[![Linux Build][travis-image]][travis-url]
-[![Test Coverage][coveralls-image]][coveralls-url]
-[![Commitizen friendly][commitizen-image]][commitizen-url]
 [![NPM version][npm-v-image]][npm-url]
-[![NPM Downloads][npm-dm-image]][npm-url]
+[![NPM Downloads][npm-dl-image]][npm-url]
 
-
---------------------------------------------------------------------------------
-
+Another Seq transport for Winston
 
 ## Installation
 
 ```sh
-$ npm install --save winston-seq
+$ npm install --save @valuabletouch/winston-seq
+
 # Or with yarn
-$ yarn add winston-seq
+$ yarn add @valuabletouch/winston-seq
 ```
-
-
---------------------------------------------------------------------------------
-
 
 ## Usage
 
 ```ts
-'use strict';
-import { Logger } from 'winston';
-import { Seq }    from 'winston-seq';
+import { createLogger } from 'winston';
+import { Transport as SeqTransport } from 'winston-seq';
 
-const logger = new Logger({
+const logger = createLogger({
   transports: [
-    new Seq({
-      serverUrl:  'http://127.0.0.1:5341'
-      /* apiKey:     '7fs2V60izlkgau2ansjH' */
+    new SeqTransport({
+      serverUrl: 'http://127.0.0.1:5341'
     })
   ]
 });
 ```
 
-or
+Options object is a merge of the `TransportStreamOptions` interface of `'winston-transport'` and `SeqLoggerConfig` interface of `'seq-logging'`:
 
 ```ts
-'use strict';
-var winston = require('winston');
+interface IOption {
+  format?: Format;
+  level?: string;
+  silent?: boolean;
+  handleExceptions?: boolean;
+  spreadProps:boolean;
+  serverUrl?: string;
+  apiKey?: string;
+  maxBatchingTime?: number;
+  eventSizeLimit?: number;
+  batchSizeLimit?: number;
+  requestTimeout?: number;
+  maxRetries?: number;
+  retryDelay?: number;
+  onError?: ErrorHandler;
+  onRemoteConfigChange?: RemoteConfigChangeHandler;
 
-/**
-  * Requiring `winston-seq` will expose
-  * `winston.transports.Seq`
-  */
-require('winston-seq');
-
-winston.add(winston.transports.Seq, {
-  serverUrl:  'http://127.0.0.1:5341'
-  /* apiKey:     '7fs2V60izlkgau2ansjH' */
-});
+  levelMapper?: LevelMapperHandler;
+  maxBufferLength?: number;
+  maxFunctionSourceLength?: number;
+}
 ```
 
-
-Use non-standard levels? Overwrite the mapper:
+Using non-standard levels? Transform them with `levelMapper`:
 
 ```ts
-// ...
-
-const logger = new Logger({
+const logger = createLogger({
   transports: [
-    new Seq({
+    new SeqTransport({
       levelMapper(level = '') {
-        switch (level.toLowerCase()) {
-          /**  Winston Level    ->     Seq Level */
-          case 'error':         return 'Error';
-          case 'warn':          return 'Warning';
-          case 'info':          return 'Information';
-          case 'debug':         return 'Debug';
-          case 'verbose':       return 'Verbose';
-          case 'silly':         return 'Verbose';
-          case 'fatal':         return 'Fatal';
-          default:              return 'Information';
+        switch (level?.toLowerCase()) {
+          // Winston   ->  Seq
+          case 'error':    return 'Error';
+          case 'warn':     return 'Warning';
+          case 'info':     return 'Information';
+          case 'debug':    return 'Debug';
+          case 'verbose':  return 'Verbose';
+          case 'silly':    return 'Verbose';
+          case 'fatal':    return 'Fatal';
+          default:         return 'Information';
         }
       }
     })
   ]
 });
-
-// ...
 ```
-
-
---------------------------------------------------------------------------------
-
 
 ## Build
 
 ```sh
 $ npm install
-$ # or
-$ yarn
-$
+
 $ npm run build
 ```
 
-
---------------------------------------------------------------------------------
-
-## Test
-
-```sh
-$ npm run test
-```
-
-
---------------------------------------------------------------------------------
-
 ## Contributing
 
-1. Fork it (<https://github.com/SuperPaintman/winston-seq/fork>)
+1. Fork it (<https://github.com/valıuabletouch/winston-seq/fork>)
 2. Create your feature branch (`git checkout -b feature/<feature_name>`)
 3. Commit your changes (`git commit -am '<type>(<scope>): added some feature'`)
 4. Push to the branch (`git push origin feature/<feature_name>`)
-5. Create a new Pull Request
-
-
---------------------------------------------------------------------------------
+5. Create a Pull Request
 
 ## Contributors
 
-- [SuperPaintman](https://github.com/SuperPaintman) SuperPaintman - creator, maintainer
-
-
---------------------------------------------------------------------------------
+- [SuperPaintman](https://github.com/SuperPaintman) Creator
+- [Valuable Touch](https://github.com/valuabletouch) Maintainer
 
 ## Changelog
 [Changelog][changelog-url]
-
-
---------------------------------------------------------------------------------
 
 ## License
 
 [MIT][license-url]
 
 
-[license-url]: https://raw.githubusercontent.com/SuperPaintman/winston-seq/master/LICENSE
-[changelog-url]: https://raw.githubusercontent.com/SuperPaintman/winston-seq/master/CHANGELOG.md
-[npm-url]: https://www.npmjs.com/package/winston-seq
-[npm-v-image]: https://img.shields.io/npm/v/winston-seq.svg
-[npm-dm-image]: https://img.shields.io/npm/dm/winston-seq.svg
-[travis-image]: https://img.shields.io/travis/SuperPaintman/winston-seq/master.svg?label=linux
-[travis-url]: https://travis-ci.org/SuperPaintman/winston-seq
-[coveralls-image]: https://img.shields.io/coveralls/SuperPaintman/winston-seq/master.svg
-[coveralls-url]: https://coveralls.io/r/SuperPaintman/winston-seq?branch=master
-[commitizen-image]: https://img.shields.io/badge/commitizen-friendly-brightgreen.svg
-[commitizen-url]: https://commitizen.github.io/cz-cli/
+[license-url]: LICENSE
+[changelog-url]: CHANGELOG.md
+[npm-url]: https://www.npmjs.com/package/@valuabletouch/winston-seq
+[npm-v-image]: https://img.shields.io/npm/v/@valuabletouch/winston-seq.svg
+[npm-dl-image]: https://img.shields.io/npm/dm/@valuabletouch/winston-seq.svg

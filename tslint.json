@@ -1,31 +1,17 @@
 {
-  "rulesDirectory": "node_modules/tslint-eslint-rules/dist/rules",
   "rules": {
     "indent": [
       true,
       "spaces"
     ],
-    "no-extra-semi": true,
     "semicolon": [
       true,
       "always"
     ],
-    "no-extra-boolean-cast": true,
     "radix": true,
     "quotemark": [
       true,
       "single"
-    ],
-    "no-unused-variable": [
-      true
-    ],
-    "no-use-before-declare": true,
-    "brace-style": [
-      true,
-      "1tbs",
-      {
-        "allowSingleLine": false
-      }
     ],
     "variable-name": [
       true,
@@ -39,10 +25,6 @@
         "multiline": "never",
         "singleline": "never"
       }
-    ],
-    "array-bracket-spacing": [
-      true,
-      "never"
     ],
     "no-consecutive-blank-lines": [
       true,
@@ -60,11 +42,11 @@
     "use-isnan": true,
     "eofline": true,
     "linebreak-style": [
-      true,
+      false,
       "LF"
     ],
     "no-trailing-whitespace": true,
-    "arrow-parens": true,
+    "arrow-parens": false,
     "comment-format": [
       true,
       "check-space"

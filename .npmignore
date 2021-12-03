@@ -1,0 +1,9 @@
+*
+
+!package.json
+!dist/index.d.ts
+!dist/index.js
+!dist/index.js.map
+!CHANGELOG.md
+!LICENSE
+!README.md
